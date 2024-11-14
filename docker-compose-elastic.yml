@@ -1,0 +1,73 @@
+  
+version: "3.7"
+
+volumes:
+  elastic-data:
+
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+      - xpack.security.enabled=false
+    networks:
+      - global-network
+    expose:
+      - 9200
+      - 9300
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+ 
+  # logstash:
+  #   container_name: logstash
+  #   image: logstash:7.17.18
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - /var/run/docker.sock:/host_docker/docker.sock
+  #     - ./elk/airflow-log/dag_id:/var/local/airflow/logs/dag_id
+  #     # - ./elk/logstash_file_input.conf:/usr/share/logstash/pipeline/logstash_file_input.conf
+  #     - ./elk/logstash_s3_input.conf:/usr/share/logstash/pipeline/logstash_s3_input.conf
+  #     - ./elk/logstash.template.json:/usr/share/logstash/templates/logstash.template.json
+  #   ports:
+  #     - 5044:5044
+  #   networks:
+  #     - global-network
+  #   # depends_on:
+  #     # - filebeat
+  #   stdin_open: true
+  #   tty: true
+  #   logging:
+  #     # driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "50"
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:8.12.1
+    ports:
+      - "5601:5601"
+    networks:
+      - global-network
+    depends_on:
+      - elasticsearch
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=kibana_password
+      # - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+
+networks:
+  global-network:
+    external: true
+  # default:
+    # driver: bridge
