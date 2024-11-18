@@ -11,8 +11,8 @@ services:
       - spark/.env
     ports:
       - "7077:7077"
-      - "4040:4040"
-      - "4041:4041"
+      # - "4040:4040"
+      # - "4041:4041"
       - "8181:8080"
     volumes:
       - ./spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf

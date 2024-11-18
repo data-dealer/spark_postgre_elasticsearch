@@ -1,0 +1,89 @@
+version: "3.7"
+# ====================================== AIRFLOW ENVIRONMENT VARIABLES =======================================
+x-airflow-common:
+  &airflow-common
+  image: apache/airflow:2.4.0-python3.8
+  environment:
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS=False
+    - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql://airflow:airflow@postgres:5432/airflow
+    - AIRFLOW__CORE__STORE_DAG_CODE=True
+    - AIRFLOW__CORE__STORE_SERIALIZED_DAGS=True
+    - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    - AIRFLOW__WEBSERVER__RBAC=False
+    - AIRFLOW__CORE__DEFAULT_TIMEZONE=Asia/Ho_Chi_Minh
+    - AIRFLOW_HOME=/opt/airflow
+    - DBT_PROFILES_DIR=/opt/airflow/dbt/.dbt
+  volumes:
+    - ./workspace/dags:/opt/airflow/dags
+    # - ./workspace/dbt:/opt/airflow/dbt
+    - ./data/airflow/logs:/opt/airflow/logs
+    # - ./workspace/dbt/infomation_marts/target:/opt/data-dbt
+    - /var/run/docker.sock:/var/run/docker.sock:z
+  depends_on:
+    - postgres
+  networks:
+    - global-network
+
+# ====================================== AIRFLOW SERVICES =======================================
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    # volumes:
+      # - ./docker/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - global-network
+    # ports:
+      # - 5432:5432
+      
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8082:8080
+    networks:
+      - global-network
+
+  init:
+    <<: *airflow-common
+    container_name: airflow_init
+    entrypoint: /bin/bash
+    command: -c 'airflow db upgrade && sleep 5 && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org'
+
+  webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    restart: always
+    ports:
+      - "8001:8080"
+    command: webserver
+
+  scheduler:
+    <<: *airflow-common
+    # user: root
+    container_name: airflow_scheduler
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+    restart: always
+    command: scheduler
+    ports:
+      - 8083:8083
+    # ports:
+    #   - "8002:8080"
+
+networks:
+  default:
+    driver: bridge
+  global-network:
+    external: true
