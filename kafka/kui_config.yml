@@ -1,0 +1,24 @@
+  type: DISABLED
+kafka:
+  clusters:
+  - bootstrapServers: host.docker.internal:9092,host.docker.internal:9093
+    name: local-kafka
+    properties: {}
+    readOnly: false
+    # schemaRegistry: http://host.docker.internal:8081
+rbac:
+  roles: []
+webclient: {}
+#{"dirpath":"spark_postgre_elasticsearch/kafka","filename":"kui_config.yml"}
+auth:
+  type: DISABLED
+kafka:
+  clusters:
+  - bootstrapServers: host.docker.internal:9092,host.docker.internal:9093
+    name: local-kafka
+    properties: {}
+    readOnly: false
+    # schemaRegistry: http://host.docker.internal:8081
+rbac:
+  roles: []
+webclient: {}

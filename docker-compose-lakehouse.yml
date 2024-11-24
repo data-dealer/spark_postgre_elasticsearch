@@ -1,0 +1,185 @@
+
+
+services:
+  spark-master:
+    image: local/base-spark:1.1.0
+    container_name: "spark-master"
+    environment:
+      - SPARK_MODE=master
+    env_file:
+      - spark/.env
+    ports:
+      - "7077:7077"
+      # - "4040:4040"
+      # - "4041:4041"
+      - "8181:8080"
+    volumes:
+      - ./spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./spark/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+    networks:
+      - global-network
+
+  spark-worker-1:
+    image: bitnami/spark:3.3.4
+    container_name: "spark-worker-1"
+    env_file:
+      - spark/.env
+    depends_on:
+      - spark-master
+    networks:
+      - global-network
+
+  spark-worker-2:
+    image: bitnami/spark:3.3.4
+    container_name: "spark-worker-2"
+    env_file:
+      - spark/.env
+    depends_on:
+      - spark-master
+    networks:
+      - global-network
+
+  # spark-worker-3:
+  #   image: bitnami/spark:3.3.4
+  #   container_name: "spark-worker-3"
+  #   env_file:
+  #     - spark/.env
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+  #     - global-network
+
+  workspace:
+    image: local/workspace:1.1.0
+    container_name: workspace
+    restart: always
+    networks:
+      - global-network
+    ports:
+      - 8886:8888
+    volumes:
+      - ./workspace:/opt/workspace
+      - ./spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+    depends_on:
+      - spark-master
+
+  # spark-livy:
+  #   image: local/livi:1.1.0
+  #   container_name: "livy"
+  #   command: ["sh", "-c", "/opt/bitnami/livy/bin/livy-server"]
+  #   volumes:
+  #     - type: bind
+  #       source: ./spark/livy.conf
+  #       target: /opt/bitnami/livy/conf/livy.conf
+  #     - type: bind
+  #       source: ./spark/log4j.properties
+  #       target: /opt/bitnami/livy/conf/log4j.properties
+  #     - type: bind
+  #       source: ./data/target/
+  #       target: /target/
+  #     - type: bind
+  #       source: ./data/livi/
+  #       target: /data/
+  #   ports:
+  #     - '8998:8998'
+  #   networks:
+  #     - global-network
+  #   depends_on:
+  #     - spark-master
+
+networks:
+  global-network:
+    external: true#{"dirpath":"spark_postgre_elasticsearch/","filename":"docker-compose-lakehouse.yml"}
+version: "3"
+
+
+services:
+  spark-master:
+    image: local/base-spark:1.1.0
+    container_name: "spark-master"
+    environment:
+      - SPARK_MODE=master
+    env_file:
+      - spark/.env
+    ports:
+      - "7077:7077"
+      # - "4040:4040"
+      # - "4041:4041"
+      - "8181:8080"
+    volumes:
+      - ./spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./spark/log4j.properties:/opt/bitnami/spark/conf/log4j.properties
+    networks:
+      - global-network
+
+  spark-worker-1:
+    image: bitnami/spark:3.3.4
+    container_name: "spark-worker-1"
+    env_file:
+      - spark/.env
+    depends_on:
+      - spark-master
+    networks:
+      - global-network
+
+  spark-worker-2:
+    image: bitnami/spark:3.3.4
+    container_name: "spark-worker-2"
+    env_file:
+      - spark/.env
+    depends_on:
+      - spark-master
+    networks:
+      - global-network
+
+  # spark-worker-3:
+  #   image: bitnami/spark:3.3.4
+  #   container_name: "spark-worker-3"
+  #   env_file:
+  #     - spark/.env
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+  #     - global-network
+
+  workspace:
+    image: local/workspace:1.1.0
+    container_name: workspace
+    restart: always
+    networks:
+      - global-network
+    ports:
+      - 8886:8888
+    volumes:
+      - ./workspace:/opt/workspace
+      - ./spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+    depends_on:
+      - spark-master
+
+  # spark-livy:
+  #   image: local/livi:1.1.0
+  #   container_name: "livy"
+  #   command: ["sh", "-c", "/opt/bitnami/livy/bin/livy-server"]
+  #   volumes:
+  #     - type: bind
+  #       source: ./spark/livy.conf
+  #       target: /opt/bitnami/livy/conf/livy.conf
+  #     - type: bind
+  #       source: ./spark/log4j.properties
+  #       target: /opt/bitnami/livy/conf/log4j.properties
+  #     - type: bind
+  #       source: ./data/target/
+  #       target: /target/
+  #     - type: bind
+  #       source: ./data/livi/
+  #       target: /data/
+  #   ports:
+  #     - '8998:8998'
+  #   networks:
+  #     - global-network
+  #   depends_on:
+  #     - spark-master
+
+networks:
+  global-network:
+    external: true

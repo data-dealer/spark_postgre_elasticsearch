@@ -1,0 +1,297 @@
+
+networks:
+  global-network:
+    external: true
+
+services:
+  kafka1:
+    image: wurstmeister/kafka:2.13-2.8.1
+    container_name: kafka1
+    hostname: kafka1
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_PORT: 9092
+      HOSTNAME_COMMAND: "route -n | awk '/UG[ \t]/{print $$2}'"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # KAFKA_CREATE_TOPICS: "payment_msg:1:1"
+      ALLOW_PLAINTEXT_LISTENER: "yes" # add to crate new topic
+      # KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+    volumes:
+      - /var/run/docker.sock:/host_docker/docker.sock
+    networks:
+      - global-network
+    
+  kafka2:
+    image: wurstmeister/kafka:2.13-2.8.1
+    container_name: kafka2
+    hostname: kafka2
+    ports:
+      - "9093:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ADVERTISED_PORT: 9093
+      HOSTNAME_COMMAND: "route -n | awk '/UG[ \t]/{print $$2}'"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      ALLOW_PLAINTEXT_LISTENER: "yes" # add to crate new topic
+      # KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+    volumes:
+      - /var/run/docker.sock:/host_docker/docker.sock
+    networks:
+      - global-network
+    
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    container_name: zookeeper
+    hostname: zookeeper
+    ulimits:
+      nofile: 
+        soft: 65536
+        hard: 65536
+    ports:
+      - "2181:2181"
+    networks:
+      - global-network
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - kafka1
+      # - kafka2
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka1:9092,kafka2:9093'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - global-network
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui
+    depends_on:
+      - kafka1
+      - kafka2
+      # - schema-registry
+    ports:
+      - "8006:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - global-network
+    volumes:
+      - ./kafka/kui_config.yml:/etc/kafkaui/dynamic_config.yaml
+      - /var/run/docker.sock:/host_docker/docker.sock
+
+  connect:
+    image: connect-base:1.0.0
+    hostname: connect
+    container_name: connect
+    restart: always
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 2048M
+    ports:
+      - 35000:35000
+      - 8083:8083
+    depends_on:
+      - zookeeper
+      - kafka1
+      - kafka2
+    networks:
+      - global-network
+    environment:
+      KAFKA_JMX_PORT: 35000
+      KAFKA_JMX_HOSTNAME: localhost
+      CONNECT_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: connect-cluster-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_CONNECTIONS_MAX_IDLE_MS: 180000
+      CONNECT_METADATA_MAX_AGE_MS: 180000
+      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+  # connect:
+    # image: quay.io/debezium/connect:latest
+    # ports:
+    #  - 8083:8083
+    # depends_on:
+    #   - kafka1
+    #   - kafka2
+    # networks:
+    #   - global-network
+    # environment:
+    #  - BOOTSTRAP_SERVERS=kafka1:29092,kafka2:29092
+    #  - GROUP_ID=1
+    #  - CONFIG_STORAGE_TOPIC=my_connect_configs
+    #  - OFFSET_STORAGE_TOPIC=my_connect_offsets
+    #  - STATUS_STORAGE_TOPIC=my_connect_statuses#{"dirpath":"spark_postgre_elasticsearch/","filename":"docker-compose-kafka-2.yml"}
+version: "3"
+
+networks:
+  global-network:
+    external: true
+
+services:
+  kafka1:
+    image: wurstmeister/kafka:2.13-2.8.1
+    container_name: kafka1
+    hostname: kafka1
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_PORT: 9092
+      HOSTNAME_COMMAND: "route -n | awk '/UG[ \t]/{print $$2}'"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # KAFKA_CREATE_TOPICS: "payment_msg:1:1"
+      ALLOW_PLAINTEXT_LISTENER: "yes" # add to crate new topic
+      # KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+    volumes:
+      - /var/run/docker.sock:/host_docker/docker.sock
+    networks:
+      - global-network
+    
+  kafka2:
+    image: wurstmeister/kafka:2.13-2.8.1
+    container_name: kafka2
+    hostname: kafka2
+    ports:
+      - "9093:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ADVERTISED_PORT: 9093
+      HOSTNAME_COMMAND: "route -n | awk '/UG[ \t]/{print $$2}'"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      ALLOW_PLAINTEXT_LISTENER: "yes" # add to crate new topic
+      # KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+    volumes:
+      - /var/run/docker.sock:/host_docker/docker.sock
+    networks:
+      - global-network
+    
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    container_name: zookeeper
+    hostname: zookeeper
+    ulimits:
+      nofile: 
+        soft: 65536
+        hard: 65536
+    ports:
+      - "2181:2181"
+    networks:
+      - global-network
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - kafka1
+      # - kafka2
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka1:9092,kafka2:9093'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - global-network
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui
+    depends_on:
+      - kafka1
+      - kafka2
+      # - schema-registry
+    ports:
+      - "8006:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - global-network
+    volumes:
+      - ./kafka/kui_config.yml:/etc/kafkaui/dynamic_config.yaml
+      - /var/run/docker.sock:/host_docker/docker.sock
+
+  connect:
+    image: connect-base:1.0.0
+    hostname: connect
+    container_name: connect
+    restart: always
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 2048M
+    ports:
+      - 35000:35000
+      - 8083:8083
+    depends_on:
+      - zookeeper
+      - kafka1
+      - kafka2
+    networks:
+      - global-network
+    environment:
+      KAFKA_JMX_PORT: 35000
+      KAFKA_JMX_HOSTNAME: localhost
+      CONNECT_BOOTSTRAP_SERVERS: "kafka1:9092,kafka2:9092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: connect-cluster-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_CONNECTIONS_MAX_IDLE_MS: 180000
+      CONNECT_METADATA_MAX_AGE_MS: 180000
+      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+  # connect:
+    # image: quay.io/debezium/connect:latest
+    # ports:
+    #  - 8083:8083
+    # depends_on:
+    #   - kafka1
+    #   - kafka2
+    # networks:
+    #   - global-network
+    # environment:
+    #  - BOOTSTRAP_SERVERS=kafka1:29092,kafka2:29092
+    #  - GROUP_ID=1
+    #  - CONFIG_STORAGE_TOPIC=my_connect_configs
+    #  - OFFSET_STORAGE_TOPIC=my_connect_offsets
+    #  - STATUS_STORAGE_TOPIC=my_connect_statuses

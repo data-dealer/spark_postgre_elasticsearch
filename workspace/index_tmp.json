@@ -1,0 +1,169 @@
+PUT /my-index-000002
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 2,
+      "number_of_replicas": 0,
+      "refresh_interval": "20s"
+    }
+  }
+}
+
+PUT /my-index-000002/_mapping
+{
+  "properties": {
+    "age": {
+      "type": "long",
+      "index": false
+    },
+    "batch": {
+      "type": "long",
+      "index": false
+    },
+    "city": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "department": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "favorite_color": {
+      "type": "text",
+      "index": false
+    },
+    "gender": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "height": {
+      "type": "long"
+    },
+    "isActive": {
+      "type": "boolean",
+      "index": false
+    },
+    "join_date": {
+      "type": "long"
+    },
+    "name": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "note": {
+      "type": "text",
+      "index": false
+    },
+    "salary": {
+      "type": "long"
+    },
+    "weight": {
+      "type": "long"
+    }
+  }
+}#{"dirpath":"spark_postgre_elasticsearch/workspace","filename":"index_tmp.json"}
+
+PUT /my-index-000002
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 2,
+      "number_of_replicas": 0,
+      "refresh_interval": "20s"
+    }
+  }
+}
+
+PUT /my-index-000002/_mapping
+{
+  "properties": {
+    "age": {
+      "type": "long",
+      "index": false
+    },
+    "batch": {
+      "type": "long",
+      "index": false
+    },
+    "city": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "department": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "favorite_color": {
+      "type": "text",
+      "index": false
+    },
+    "gender": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "height": {
+      "type": "long"
+    },
+    "isActive": {
+      "type": "boolean",
+      "index": false
+    },
+    "join_date": {
+      "type": "long"
+    },
+    "name": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword",
+          "ignore_above": 256
+        }
+      }
+    },
+    "note": {
+      "type": "text",
+      "index": false
+    },
+    "salary": {
+      "type": "long"
+    },
+    "weight": {
+      "type": "long"
+    }
+  }
+}

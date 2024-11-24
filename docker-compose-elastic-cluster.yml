@@ -1,0 +1,249 @@
+version: "3.7"
+
+volumes:
+  elastic-data1:
+  elastic-data2:
+
+services:
+  elasticsearch1:
+    container_name: elasticsearch1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    environment:
+      - node.name=elasticsearch1
+      - cluster.name=elastic-docker-cluster
+      - discovery.seed_hosts=elasticsearch2
+      - cluster.initial_master_nodes=elasticsearch1,elasticsearch2
+      - "ES_JAVA_OPTS=-Xms2024m -Xmx2024m"
+    networks:
+      - global-network
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    expose:
+      - 9200
+      # - 9300
+    ports:
+      - "9200:9200"
+      # - "9300:9300"
+    volumes:
+      - elastic-data1:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  elasticsearch2:
+    container_name: elasticsearch2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    environment:
+      - node.name=elasticsearch2
+      - cluster.name=elastic-docker-cluster
+      - discovery.seed_hosts=elasticsearch1
+      - cluster.initial_master_nodes=elasticsearch1,elasticsearch2
+      - "ES_JAVA_OPTS=-Xms2024m -Xmx2024m"
+    networks:
+      - global-network
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    expose:
+      - 9200
+      # - 9300
+    ports:
+      - "9201:9200"
+      # - "9300:9300"
+    volumes:
+      - elastic-data2:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+ 
+  # logstash:
+  #   container_name: logstash
+  #   image: logstash:7.17.18
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - /var/run/docker.sock:/host_docker/docker.sock
+  #     - ./elk/airflow-log/dag_id:/var/local/airflow/logs/dag_id
+  #     # - ./elk/logstash_file_input.conf:/usr/share/logstash/pipeline/logstash_file_input.conf
+  #     - ./elk/logstash_s3_input.conf:/usr/share/logstash/pipeline/logstash_s3_input.conf
+  #     - ./elk/logstash.template.json:/usr/share/logstash/templates/logstash.template.json
+  #   ports:
+  #     - 5044:5044
+  #   networks:
+  #     - global-network
+  #   # depends_on:
+  #     # - filebeat
+  #   stdin_open: true
+  #   tty: true
+  #   logging:
+  #     # driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "50"
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    ports:
+      - "5601:5601"
+    networks:
+      - global-network
+    depends_on:
+      - elasticsearch1
+      - elasticsearch2
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://elasticsearch1:9200
+      #ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=kibana_password
+      # - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+
+networks:
+  global-network:
+    external: true
+  # default:
+    # driver: bridge#{"dirpath":"spark_postgre_elasticsearch/","filename":"docker-compose-elastic-cluster.yml"}
+  
+version: "3.7"
+
+volumes:
+  elastic-data1:
+  elastic-data2:
+
+services:
+  elasticsearch1:
+    container_name: elasticsearch1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    environment:
+      - node.name=elasticsearch1
+      - cluster.name=elastic-docker-cluster
+      - discovery.seed_hosts=elasticsearch2
+      - cluster.initial_master_nodes=elasticsearch1,elasticsearch2
+      - "ES_JAVA_OPTS=-Xms2024m -Xmx2024m"
+    networks:
+      - global-network
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    expose:
+      - 9200
+      # - 9300
+    ports:
+      - "9200:9200"
+      # - "9300:9300"
+    volumes:
+      - elastic-data1:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+  elasticsearch2:
+    container_name: elasticsearch2
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    environment:
+      - node.name=elasticsearch2
+      - cluster.name=elastic-docker-cluster
+      - discovery.seed_hosts=elasticsearch1
+      - cluster.initial_master_nodes=elasticsearch1,elasticsearch2
+      - "ES_JAVA_OPTS=-Xms2024m -Xmx2024m"
+    networks:
+      - global-network
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    expose:
+      - 9200
+      # - 9300
+    ports:
+      - "9201:9200"
+      # - "9300:9300"
+    volumes:
+      - elastic-data2:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+ 
+  # logstash:
+  #   container_name: logstash
+  #   image: logstash:7.17.18
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - /var/run/docker.sock:/host_docker/docker.sock
+  #     - ./elk/airflow-log/dag_id:/var/local/airflow/logs/dag_id
+  #     # - ./elk/logstash_file_input.conf:/usr/share/logstash/pipeline/logstash_file_input.conf
+  #     - ./elk/logstash_s3_input.conf:/usr/share/logstash/pipeline/logstash_s3_input.conf
+  #     - ./elk/logstash.template.json:/usr/share/logstash/templates/logstash.template.json
+  #   ports:
+  #     - 5044:5044
+  #   networks:
+  #     - global-network
+  #   # depends_on:
+  #     # - filebeat
+  #   stdin_open: true
+  #   tty: true
+  #   logging:
+  #     # driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "50"
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    ports:
+      - "5601:5601"
+    networks:
+      - global-network
+    depends_on:
+      - elasticsearch1
+      - elasticsearch2
+    environment:
+      - SERVERNAME=kibana
+      - ELASTICSEARCH_HOSTS=http://elasticsearch1:9200
+      #ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=kibana_password
+      # - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+
+networks:
+  global-network:
+    external: true
+  # default:
+    # driver: bridge

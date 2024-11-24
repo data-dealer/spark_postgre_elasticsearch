@@ -1,0 +1,2 @@
+#{"dirpath":"spark_postgre_elasticsearch/kafka-connect","filename":"source_connector_postgres.json"}
+{"name":"sink_connector_postgres","config":{"connector.class":"io.confluent.connect.jdbc.JdbcSourceConnector","connection.url":"jdbc:postgresql://postgres-db:5432/postgres","connection.user":"postgres","connection.password":"postgres","tasks.max":"1","topics":"postgres_data","mode":"incrementing","incrementing.column.name":"id","key.converter":"org.apache.kafka.connect.json.JsonConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter"}}

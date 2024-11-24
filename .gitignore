@@ -1,0 +1,11 @@
+data/*
+target
+target/*
+
+.env#{"dirpath":"spark_postgre_elasticsearch/","filename":".gitignore"}
+data
+data/*
+target
+target/*
+
+.env

@@ -1,0 +1,2 @@
+#{"dirpath":"spark_postgre_elasticsearch/kafka-connect","filename":"sink_connector_elasticsearch.json"}
+{"name":"elasticsearch-sink-connector","config":{"connector.class":"io.confluent.connect.elasticsearch.ElasticsearchSinkConnector","connection.url":"http://elasticsearch:9200","topics":"postgres_data","key.converter":"org.apache.kafka.connect.json.JsonConverter","value.converter":"org.apache.kafka.connect.json.JsonConverter"}}

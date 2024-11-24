@@ -1,0 +1,149 @@
+# ====================================== AIRFLOW ENVIRONMENT VARIABLES =======================================
+x-airflow-common:
+  &airflow-common
+  image: local/airflow:1.1.1
+  env_file:
+    - ./airflow/.env
+  volumes:
+    - ./workspace/dags:/opt/airflow/dags
+    - ./data/airflow/logs:/opt/airflow/logs
+    # - /var/run/docker.sock:/host_docker/docker.sock
+    - /var/run/docker.sock:/var/run/docker.sock
+  depends_on:
+    - postgres
+  networks:
+    - global-network
+
+# ====================================== AIRFLOW SERVICES =======================================
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    # volumes:
+      # - ./docker/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - global-network
+    # ports:
+      # - 5432:5432
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8082:8080
+  #   networks:
+  #     - global-network
+
+  init:
+    <<: *airflow-common
+    container_name: airflow_init
+    entrypoint: /bin/bash
+    command: -c 'airflow db upgrade && sleep 5 && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org'
+
+  webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    # restart: always
+    ports:
+      - "8001:8080"
+    command: webserver
+    depends_on:
+      - scheduler
+
+  scheduler:
+    <<: *airflow-common
+    # user: root
+    container_name: airflow_scheduler
+    # restart: always
+    command: scheduler
+    # command: bash -c "airflow db migrate && airflow users create --username admin --firstname max --lastname ng --role Admin --email admin@gmail.com --password admin && airflow scheduler"
+    # ports:
+      # - 8083:8083
+    networks:
+      - global-network
+
+networks:
+  default:
+    driver: bridge
+  global-network:
+    external: true#{"dirpath":"spark_postgre_elasticsearch/","filename":"docker-compose-airflow.yml"}
+version: "3.7"
+# ====================================== AIRFLOW ENVIRONMENT VARIABLES =======================================
+x-airflow-common:
+  &airflow-common
+  image: local/airflow:1.1.1
+  env_file:
+    - ./airflow/.env
+  volumes:
+    - ./workspace/dags:/opt/airflow/dags
+    - ./data/airflow/logs:/opt/airflow/logs
+    # - /var/run/docker.sock:/host_docker/docker.sock
+    - /var/run/docker.sock:/var/run/docker.sock
+  depends_on:
+    - postgres
+  networks:
+    - global-network
+
+# ====================================== AIRFLOW SERVICES =======================================
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    # volumes:
+      # - ./docker/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - global-network
+    # ports:
+      # - 5432:5432
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8082:8080
+  #   networks:
+  #     - global-network
+
+  init:
+    <<: *airflow-common
+    container_name: airflow_init
+    entrypoint: /bin/bash
+    command: -c 'airflow db upgrade && sleep 5 && airflow users create --username admin --password admin --firstname Anonymous --lastname Admin --role Admin --email admin@example.org'
+
+  webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    # restart: always
+    ports:
+      - "8001:8080"
+    command: webserver
+    depends_on:
+      - scheduler
+
+  scheduler:
+    <<: *airflow-common
+    # user: root
+    container_name: airflow_scheduler
+    # restart: always
+    command: scheduler
+    # command: bash -c "airflow db migrate && airflow users create --username admin --firstname max --lastname ng --role Admin --email admin@gmail.com --password admin && airflow scheduler"
+    # ports:
+      # - 8083:8083
+    networks:
+      - global-network
+
+networks:
+  default:
+    driver: bridge
+  global-network:
+    external: true
